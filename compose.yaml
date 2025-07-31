@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: development
+    ports:
+      - 3000:80
+    environment:
+      - PORT=80
+      - DB_URL=postgresql://${DB_USER:-configstore}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-configstore}
+    volumes:
+      - ./src:/app/src
+    networks:
+      - config-store-net
+    depends_on:
+      - db
+  db:
+    image: postgres:17.1
+    environment:
+      - POSTGRES_USER=${DB_USER:-configstore}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+      - POSTGRES_DB=${DB_NAME:-configstore}
+    volumes:
+      - type: volume
+        source: postgres-data
+        target: /var/lib/postgresql/data
+    networks:
+      - config-store-net
+
+
+networks:
+  config-store-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
